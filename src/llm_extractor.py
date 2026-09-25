@@ -1,5 +1,5 @@
 """
-Schema-constrained extraction of supply-chain signals from supplier notes using Azure OpenAI.
+Schema-constrained extraction of supply-chain signals from supplier notes using OpenRouter.
 """
 
 import json
@@ -7,15 +7,14 @@ import time
 from datetime import datetime, timezone
 
 import pandas as pd
-from openai import AzureOpenAI
+from openai import OpenAI
 
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from config.settings import (
-    AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_DEPLOYMENT,
-    AZURE_OPENAI_API_VERSION,
+    OPENROUTER_API_KEY,
+    OPENROUTER_BASE_URL,
+    LLM_MODEL,
     EXTRACTION_SCHEMA,
 )
 
@@ -31,17 +30,16 @@ Rules:
 """
 
 
-def get_client() -> AzureOpenAI:
-    return AzureOpenAI(
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION,
+def get_client() -> OpenAI:
+    return OpenAI(
+        base_url=OPENROUTER_BASE_URL,
+        api_key=OPENROUTER_API_KEY,
     )
 
 
-def extract_signals(client: AzureOpenAI, note_text: str) -> dict:
+def extract_signals(client: OpenAI, note_text: str) -> dict:
     response = client.chat.completions.create(
-        model=AZURE_OPENAI_DEPLOYMENT,
+        model=LLM_MODEL,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"Extract signals from this supplier note:\n\n{note_text}"},
@@ -53,7 +51,7 @@ def extract_signals(client: AzureOpenAI, note_text: str) -> dict:
     return json.loads(response.choices[0].message.content)
 
 
-def extract_batch(client: AzureOpenAI, notes_df: pd.DataFrame,
+def extract_batch(client: OpenAI, notes_df: pd.DataFrame,
                   note_col: str = "note_text", batch_delay: float = 0.5) -> pd.DataFrame:
     results = []
     total = len(notes_df)
@@ -63,7 +61,7 @@ def extract_batch(client: AzureOpenAI, notes_df: pd.DataFrame,
             signals = extract_signals(client, row[note_col])
             signals["note_id"] = row["note_id"]
             signals["extraction_timestamp"] = datetime.now(timezone.utc).isoformat()
-            signals["model_version"] = AZURE_OPENAI_DEPLOYMENT
+            signals["model_version"] = LLM_MODEL
             signals["source"] = "llm_extraction"
             results.append(signals)
         except Exception as e:
@@ -75,7 +73,7 @@ def extract_batch(client: AzureOpenAI, notes_df: pd.DataFrame,
                 "sentiment_score": None,
                 "key_phrases": [],
                 "extraction_timestamp": datetime.now(timezone.utc).isoformat(),
-                "model_version": AZURE_OPENAI_DEPLOYMENT,
+                "model_version": LLM_MODEL,
                 "source": "llm_extraction",
                 "extraction_error": str(e),
             })
