@@ -19,10 +19,10 @@ SKUS = [
 ]
 
 SUPPLIERS = [
-    {"supplier_id": "SUP01", "name": "Apex Components", "reliability": 0.75},
-    {"supplier_id": "SUP02", "name": "Nordic Metals",   "reliability": 0.65},
-    {"supplier_id": "SUP03", "name": "Delta Plastics",  "reliability": 0.85},
-    {"supplier_id": "SUP04", "name": "Precision Parts",  "reliability": 0.70},
+    {"supplier_id": "SUP01", "name": "Apex Components", "reliability": 0.55},
+    {"supplier_id": "SUP02", "name": "Nordic Metals",   "reliability": 0.45},
+    {"supplier_id": "SUP03", "name": "Delta Plastics",  "reliability": 0.65},
+    {"supplier_id": "SUP04", "name": "Precision Parts",  "reliability": 0.50},
 ]
 
 DELAY_REASONS = [
@@ -73,7 +73,7 @@ def _create_po(po_counter, sku, supplier, order_date, rng):
 
     is_delayed = rng.random() > supplier["reliability"]
     if is_delayed:
-        delay_days = int(rng.integers(3, 16))
+        delay_days = int(rng.integers(5, 22))
         actual_date = promised_date + timedelta(days=delay_days)
         days_after_order = int(rng.integers(max(1, lead_time // 2), max(2, lead_time - 1)))
         note_date = order_date + timedelta(days=days_after_order)
@@ -167,10 +167,10 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
 
     for sku in SKUS:
         supplier = next(s for s in SUPPLIERS if s["supplier_id"] == sku["supplier_id"])
-        reorder_point = sku["base_demand"] * (sku["base_lead_time"] + 5)
-        order_qty = sku["base_demand"] * (sku["base_lead_time"] + 10)
+        reorder_point = sku["base_demand"] * (sku["base_lead_time"] + 2)
+        order_qty = sku["base_demand"] * (sku["base_lead_time"] + 5)
 
-        inventory = order_qty
+        inventory = int(order_qty * 0.6)
         open_po = None
 
         for date in dates:
@@ -183,6 +183,9 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
 
             # 2. Demand and sales
             true_demand = _seasonal_demand(sku["base_demand"], date, rng)
+            # When a delay is active and inventory is getting low, sales drop faster
+            if open_po is not None and open_po["is_delayed"] and inventory < reorder_point * 0.5:
+                true_demand = int(true_demand * max(0.3, inventory / (reorder_point * 0.5)))
             sales = min(true_demand, max(0, int(inventory)))
             stockout = int(inventory <= 0)
             inventory = max(0, inventory - sales)
