@@ -75,9 +75,9 @@ def _create_po(po_counter, sku, supplier, order_date, rng):
     if is_delayed:
         delay_days = int(rng.integers(5, 22))
         actual_date = promised_date + timedelta(days=delay_days)
-        days_after_order = int(rng.integers(max(1, lead_time // 2), max(2, lead_time - 1)))
+        days_after_order = int(rng.integers(max(1, lead_time // 3), max(2, lead_time // 2)))
         note_date = order_date + timedelta(days=days_after_order)
-        erp_update_days = int(rng.integers(1, 4))
+        erp_update_days = int(rng.integers(5, 12))
         erp_update_date = note_date + timedelta(days=erp_update_days)
         if erp_update_date >= actual_date:
             erp_update_date = actual_date - timedelta(days=1)
@@ -183,9 +183,13 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
 
             # 2. Demand and sales
             true_demand = _seasonal_demand(sku["base_demand"], date, rng)
-            # When a delay is active and inventory is getting low, sales drop faster
-            if open_po is not None and open_po["is_delayed"] and inventory < reorder_point * 0.5:
-                true_demand = int(true_demand * max(0.3, inventory / (reorder_point * 0.5)))
+            # Delayed POs drain inventory → sales constrained before ERP knows
+            if (open_po is not None and open_po["is_delayed"]
+                    and open_po["note_date"] is not None
+                    and date >= open_po["note_date"]):
+                days_into_delay = (date - open_po["note_date"]).days
+                decay = max(0.25, 1.0 - days_into_delay * 0.06)
+                true_demand = max(1, int(true_demand * decay))
             sales = min(true_demand, max(0, int(inventory)))
             stockout = int(inventory <= 0)
             inventory = max(0, inventory - sales)
