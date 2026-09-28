@@ -224,7 +224,6 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
                 "sku_id": sku["sku_id"],
                 "sku_name": sku["name"],
                 "supplier_id": sku["supplier_id"],
-                "true_demand": true_demand,
                 "sales": sales,
                 "on_hand_inventory": int(inventory),
                 "stockout_flag": stockout,
