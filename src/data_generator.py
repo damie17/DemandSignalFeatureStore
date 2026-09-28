@@ -1,5 +1,6 @@
 """
-Synthetic data generation for ERP shipment records and supplier notes.
+Synthetic data generation for demand forecasting with supplier delay signals.
+Generates internally consistent: daily sales/inventory, purchase orders, supplier notes.
 """
 
 import random
@@ -8,162 +9,269 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
-SUPPLIERS = [
-    {"id": "SUP-001", "name": "Apex Components", "region": "Asia-Pacific", "reliability": 0.85},
-    {"id": "SUP-002", "name": "Nordic Metals", "region": "Europe", "reliability": 0.92},
-    {"id": "SUP-003", "name": "Delta Plastics", "region": "North America", "reliability": 0.78},
-    {"id": "SUP-004", "name": "Precision Parts Co", "region": "Europe", "reliability": 0.95},
-    {"id": "SUP-005", "name": "ShenZhen Electronics", "region": "Asia-Pacific", "reliability": 0.70},
-    {"id": "SUP-006", "name": "Great Lakes Materials", "region": "North America", "reliability": 0.88},
-    {"id": "SUP-007", "name": "Rajasthan Textiles", "region": "Asia-Pacific", "reliability": 0.75},
-    {"id": "SUP-008", "name": "Bavaria Engineering", "region": "Europe", "reliability": 0.93},
+
+SKUS = [
+    {"sku_id": "SKU01", "name": "Widget Alpha", "base_demand": 45, "supplier_id": "SUP01", "base_lead_time": 10},
+    {"sku_id": "SKU02", "name": "Widget Beta",  "base_demand": 30, "supplier_id": "SUP02", "base_lead_time": 14},
+    {"sku_id": "SKU03", "name": "Gadget Pro",   "base_demand": 55, "supplier_id": "SUP03", "base_lead_time": 7},
+    {"sku_id": "SKU04", "name": "Gadget Lite",  "base_demand": 20, "supplier_id": "SUP04", "base_lead_time": 18},
+    {"sku_id": "SKU05", "name": "Component Z",  "base_demand": 38, "supplier_id": "SUP01", "base_lead_time": 12},
 ]
 
-PRODUCTS = [
-    {"sku": "SKU-1001", "name": "Aluminum Housing", "category": "Structural"},
-    {"sku": "SKU-1002", "name": "PCB Module A", "category": "Electronics"},
-    {"sku": "SKU-1003", "name": "Rubber Gasket Set", "category": "Sealing"},
-    {"sku": "SKU-1004", "name": "Steel Bracket", "category": "Structural"},
-    {"sku": "SKU-1005", "name": "Connector Cable 2m", "category": "Electronics"},
-    {"sku": "SKU-1006", "name": "Thermal Pad Kit", "category": "Thermal"},
+SUPPLIERS = [
+    {"supplier_id": "SUP01", "name": "Apex Components", "reliability": 0.75},
+    {"supplier_id": "SUP02", "name": "Nordic Metals",   "reliability": 0.65},
+    {"supplier_id": "SUP03", "name": "Delta Plastics",  "reliability": 0.85},
+    {"supplier_id": "SUP04", "name": "Precision Parts",  "reliability": 0.70},
+]
+
+DELAY_REASONS = [
+    "port congestion", "raw material shortage", "transportation disruption",
+    "factory equipment maintenance", "labor shortage", "customs clearance delay",
+    "severe weather conditions", "sub-tier supplier failure",
+]
+
+NOTE_TEMPLATES_DELAY = [
+    "Supplier {supplier_id} ({supplier}) informed us that shipment {po_id} will be delayed by approximately {delay} days due to {reason}.",
+    "{supplier} ({supplier_id}) reports {po_id} may arrive {delay} days late. Cause: {reason}.",
+    "Update from {supplier}: shipment {po_id}, originally due {promised_date}, now expected around {new_date}. Reason: {reason}.",
+    "Urgent notice from {supplier_id}: {po_id} facing a {delay}-day delay due to {reason}.",
+    "{supplier} notified us of a {delay}-day delay for {po_id}. {reason} impacting their operations.",
 ]
 
 NOTE_TEMPLATES_NORMAL = [
-    "Shipment from {supplier} arrived on schedule. Quality inspection passed. No issues noted.",
-    "Regular delivery from {supplier}. All {qty} units of {product} received in good condition.",
-    "{supplier} confirmed next shipment on track. Lead time stable at {lead_time} days.",
-    "Routine check-in with {supplier}. Production running smoothly, capacity is adequate for current demand.",
-    "Received confirmation from {supplier} — order #{order_id} will ship as planned. No delays expected.",
-    "{supplier} quarterly review: strong performance, consistent delivery windows, no quality flags.",
+    "Routine check-in with {supplier} ({supplier_id}). Shipment {po_id} on track for {promised_date}.",
+    "{supplier_id} confirmed {po_id} will arrive as scheduled on {promised_date}. No issues.",
+    "No issues reported by {supplier}. Shipment {po_id} on schedule for {promised_date}.",
+    "Weekly update from {supplier}: operations normal, {po_id} on track.",
 ]
 
-NOTE_TEMPLATES_RISK = [
-    "{supplier} warned of potential {delay_days}-day delay due to raw material shortage. Monitoring closely.",
-    "Lead time from {supplier} has increased from {lead_time} to {lead_time_new} days. They cite port congestion in {region}.",
-    "Quality issue flagged on last batch from {supplier}. {reject_pct}% rejection rate on {product}. Rework needed.",
-    "{supplier} reports factory running at {capacity_pct}% capacity — labor shortage impacting output. May need to split order.",
-    "Urgent: {supplier} notified us of a {delay_days}-day production halt due to equipment failure. Backup sourcing initiated.",
-    "{supplier} is experiencing logistics disruption in {region}. Expect {delay_days}-day delay on {product} orders.",
-    "Account manager at {supplier} flagged rising input costs — may request price adjustment. Also seeing {delay_days}-day lead time creep.",
-    "{supplier} capacity constrained — they can only fulfill {capacity_pct}% of our order volume this month. Critical situation.",
-    "Received notice from {supplier}: typhoon disruption in {region} affecting shipping routes. Estimated {delay_days}-day impact.",
-    "{supplier} missed delivery window by {delay_days} days. Root cause: sub-tier supplier failure. Escalated to management.",
+US_HOLIDAYS = [
+    "2024-01-01", "2024-01-15", "2024-02-19", "2024-05-27", "2024-07-04",
+    "2024-09-02", "2024-10-14", "2024-11-28", "2024-11-29", "2024-12-25",
+    "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-07-04",
+    "2025-09-01", "2025-10-13", "2025-11-27", "2025-11-28", "2025-12-25",
 ]
+HOLIDAY_SET = {pd.Timestamp(d) for d in US_HOLIDAYS}
 
 
-def generate_erp_data(n_records: int = 2000, start_date: str = "2024-01-01",
-                      end_date: str = "2025-06-30", seed: int = 42) -> pd.DataFrame:
+def _seasonal_demand(base_demand, date, rng):
+    dow_mult = [1.1, 1.05, 1.0, 1.0, 1.15, 0.7, 0.6][date.weekday()]
+    month_mult = {
+        1: 0.85, 2: 0.85, 3: 0.90, 4: 0.95, 5: 1.0, 6: 1.0,
+        7: 0.95, 8: 0.95, 9: 1.05, 10: 1.15, 11: 1.25, 12: 1.20,
+    }[date.month]
+    holiday_mult = 0.3 if pd.Timestamp(date) in HOLIDAY_SET else 1.0
+    noise = max(0.5, rng.normal(1.0, 0.15))
+    return max(1, int(base_demand * dow_mult * month_mult * holiday_mult * noise))
+
+
+def _create_po(po_counter, sku, supplier, order_date, rng):
+    lead_time = sku["base_lead_time"]
+    promised_date = order_date + timedelta(days=lead_time)
+    order_qty = sku["base_demand"] * (lead_time + 10)
+
+    is_delayed = rng.random() > supplier["reliability"]
+    if is_delayed:
+        delay_days = int(rng.integers(3, 16))
+        actual_date = promised_date + timedelta(days=delay_days)
+        days_after_order = int(rng.integers(max(1, lead_time // 2), max(2, lead_time - 1)))
+        note_date = order_date + timedelta(days=days_after_order)
+        erp_update_days = int(rng.integers(1, 4))
+        erp_update_date = note_date + timedelta(days=erp_update_days)
+        if erp_update_date >= actual_date:
+            erp_update_date = actual_date - timedelta(days=1)
+    else:
+        delay_days = 0
+        actual_date = promised_date
+        note_date = None
+        erp_update_date = None
+
+    return {
+        "po_id": f"PO{po_counter:04d}",
+        "sku_id": sku["sku_id"],
+        "supplier_id": supplier["supplier_id"],
+        "order_date": order_date,
+        "promised_date": promised_date,
+        "actual_date": actual_date,
+        "erp_update_date": erp_update_date,
+        "qty": order_qty,
+        "delay_days": delay_days,
+        "is_delayed": is_delayed,
+        "note_date": note_date,
+    }
+
+
+def _create_delay_note(note_counter, po, supplier, rng):
+    reason = random.choice(DELAY_REASONS)
+    template = random.choice(NOTE_TEMPLATES_DELAY)
+    note_text = template.format(
+        supplier=supplier["name"],
+        supplier_id=supplier["supplier_id"],
+        po_id=po["po_id"],
+        delay=po["delay_days"],
+        reason=reason,
+        new_date=po["actual_date"].strftime("%Y-%m-%d"),
+        promised_date=po["promised_date"].strftime("%Y-%m-%d"),
+    )
+    return {
+        "note_id": f"N{note_counter:04d}",
+        "note_date": po["note_date"],
+        "supplier_id": supplier["supplier_id"],
+        "po_id": po["po_id"],
+        "note_text": note_text,
+        "note_type": "delay_warning",
+    }
+
+
+def _create_routine_note(note_counter, po, supplier, rng):
+    template = random.choice(NOTE_TEMPLATES_NORMAL)
+    note_text = template.format(
+        supplier=supplier["name"],
+        supplier_id=supplier["supplier_id"],
+        po_id=po["po_id"],
+        promised_date=po["promised_date"].strftime("%Y-%m-%d"),
+    )
+    days_after = int(rng.integers(1, max(2, (po["promised_date"] - po["order_date"]).days)))
+    note_date = po["order_date"] + timedelta(days=days_after)
+    return {
+        "note_id": f"N{note_counter:04d}",
+        "note_date": note_date,
+        "supplier_id": supplier["supplier_id"],
+        "po_id": po["po_id"],
+        "note_text": note_text,
+        "note_type": "routine",
+    }
+
+
+def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
+    """
+    Simulate internally consistent supply chain data.
+
+    Returns:
+        daily_df: Daily sales and inventory per SKU (one row per date per SKU)
+        po_df: Purchase orders with promised/actual delivery dates
+        notes_df: Supplier notes (delay warnings + routine check-ins)
+    """
     rng = np.random.default_rng(seed)
     random.seed(seed)
 
     start = datetime.strptime(start_date, "%Y-%m-%d")
-    end = datetime.strptime(end_date, "%Y-%m-%d")
-    date_range = (end - start).days
+    dates = [start + timedelta(days=i) for i in range(n_days)]
 
-    records = []
-    for i in range(n_records):
-        supplier = random.choice(SUPPLIERS)
-        product = random.choice(PRODUCTS)
-        order_date = start + timedelta(days=rng.integers(0, date_range))
-        base_lead_time = rng.integers(5, 30)
+    daily_records = []
+    po_records = []
+    note_records = []
+    po_counter = 0
+    note_counter = 0
 
-        is_delayed = rng.random() < (1 - supplier["reliability"])
-        delay_days = int(rng.integers(1, 21)) if is_delayed else 0
-        actual_lead_time = base_lead_time + delay_days
+    for sku in SKUS:
+        supplier = next(s for s in SUPPLIERS if s["supplier_id"] == sku["supplier_id"])
+        reorder_point = sku["base_demand"] * (sku["base_lead_time"] + 5)
+        order_qty = sku["base_demand"] * (sku["base_lead_time"] + 10)
 
-        qty_ordered = int(rng.integers(50, 5000))
-        qty_received = qty_ordered if not is_delayed else int(qty_ordered * rng.uniform(0.7, 1.0))
+        inventory = order_qty
+        open_po = None
 
-        delivery_date = order_date + timedelta(days=int(actual_lead_time))
+        for date in dates:
+            # 1. Check PO arrival
+            arrived_qty = 0
+            if open_po is not None and date >= open_po["actual_date"]:
+                arrived_qty = open_po["qty"]
+                inventory += arrived_qty
+                open_po = None
 
-        records.append({
-            "order_id": f"ORD-{10000 + i}",
-            "supplier_id": supplier["id"],
-            "supplier_name": supplier["name"],
-            "supplier_region": supplier["region"],
-            "sku": product["sku"],
-            "product_name": product["name"],
-            "product_category": product["category"],
-            "order_date": order_date.strftime("%Y-%m-%d"),
-            "expected_delivery_date": (order_date + timedelta(days=int(base_lead_time))).strftime("%Y-%m-%d"),
-            "actual_delivery_date": delivery_date.strftime("%Y-%m-%d"),
-            "planned_lead_time_days": int(base_lead_time),
-            "actual_lead_time_days": int(actual_lead_time),
-            "delay_days": delay_days,
-            "qty_ordered": qty_ordered,
-            "qty_received": qty_received,
-            "unit_cost": round(float(rng.uniform(5, 500)), 2),
-            "on_time_delivery": delay_days == 0,
-        })
+            # 2. Demand and sales
+            true_demand = _seasonal_demand(sku["base_demand"], date, rng)
+            sales = min(true_demand, max(0, int(inventory)))
+            stockout = int(inventory <= 0)
+            inventory = max(0, inventory - sales)
 
-    df = pd.DataFrame(records)
-    df["order_date"] = pd.to_datetime(df["order_date"])
-    df["expected_delivery_date"] = pd.to_datetime(df["expected_delivery_date"])
-    df["actual_delivery_date"] = pd.to_datetime(df["actual_delivery_date"])
-    df["year_month"] = df["order_date"].dt.to_period("M").astype(str)
-    return df
+            # 3. Check reorder
+            if inventory < reorder_point and open_po is None:
+                po_counter += 1
+                open_po = _create_po(po_counter, sku, supplier, date, rng)
+                po_records.append(open_po)
+
+                if open_po["is_delayed"]:
+                    note_counter += 1
+                    note = _create_delay_note(note_counter, open_po, supplier, rng)
+                    note_records.append(note)
+                elif rng.random() < 0.3:
+                    note_counter += 1
+                    note = _create_routine_note(note_counter, open_po, supplier, rng)
+                    note_records.append(note)
+
+            # 4. Daily record
+            open_po_qty = open_po["qty"] if open_po else 0
+            days_until = (open_po["promised_date"] - date).days if open_po else None
+
+            # ERP-known delay: only available after erp_update_date
+            erp_expected_delay = 0
+            if open_po and open_po["is_delayed"] and open_po["erp_update_date"]:
+                if date >= open_po["erp_update_date"]:
+                    erp_expected_delay = open_po["delay_days"]
+
+            daily_records.append({
+                "date": date.strftime("%Y-%m-%d"),
+                "sku_id": sku["sku_id"],
+                "sku_name": sku["name"],
+                "supplier_id": sku["supplier_id"],
+                "true_demand": true_demand,
+                "sales": sales,
+                "on_hand_inventory": int(inventory),
+                "stockout_flag": stockout,
+                "open_po_qty": open_po_qty,
+                "days_until_expected_delivery": days_until,
+                "erp_expected_delay_days": erp_expected_delay,
+                "arrived_qty": arrived_qty,
+            })
+
+    daily_df = pd.DataFrame(daily_records)
+    daily_df["date"] = pd.to_datetime(daily_df["date"])
+
+    po_df = pd.DataFrame(po_records)
+    if not po_df.empty:
+        for col in ["order_date", "promised_date", "actual_date", "note_date", "erp_update_date"]:
+            po_df[col] = pd.to_datetime(po_df[col])
+
+    notes_df = pd.DataFrame(note_records)
+    if not notes_df.empty:
+        notes_df["note_date"] = pd.to_datetime(notes_df["note_date"])
+
+    return daily_df, po_df, notes_df
 
 
-def generate_supplier_notes(erp_df: pd.DataFrame, notes_per_month: int = 3,
-                            seed: int = 42) -> pd.DataFrame:
-    rng = np.random.default_rng(seed)
-    random.seed(seed)
+def generate_ground_truth_extractions(notes_df, po_df):
+    """
+    Create extraction results from known ground truth.
+    Fallback if LLM API is unavailable.
+    """
+    results = []
+    for _, note in notes_df.iterrows():
+        if note["note_type"] == "delay_warning":
+            po = po_df[po_df["po_id"] == note["po_id"]]
+            delay = int(po.iloc[0]["delay_days"]) if not po.empty else 0
+            results.append({
+                "note_id": note["note_id"],
+                "supplier_id": note["supplier_id"],
+                "po_id": note["po_id"],
+                "early_delay_flag": 1,
+                "expected_delay_days": delay,
+                "delay_reason": "extracted from note",
+            })
+        else:
+            results.append({
+                "note_id": note["note_id"],
+                "supplier_id": note["supplier_id"],
+                "po_id": note["po_id"],
+                "early_delay_flag": 0,
+                "expected_delay_days": 0,
+                "delay_reason": "",
+            })
 
-    year_months = erp_df["year_month"].unique()
-    supplier_ids = erp_df["supplier_id"].unique()
-
-    notes = []
-    note_id = 0
-    for ym in sorted(year_months):
-        for sid in supplier_ids:
-            subset = erp_df[(erp_df["year_month"] == ym) & (erp_df["supplier_id"] == sid)]
-            if subset.empty:
-                continue
-
-            supplier = next(s for s in SUPPLIERS if s["id"] == sid)
-            n_notes = rng.integers(1, notes_per_month + 1)
-
-            for _ in range(n_notes):
-                has_risk = rng.random() > supplier["reliability"]
-                sample_row = subset.sample(1, random_state=int(rng.integers(0, 99999))).iloc[0]
-
-                if has_risk:
-                    template = random.choice(NOTE_TEMPLATES_RISK)
-                    delay_days = int(rng.integers(2, 21))
-                    note_text = template.format(
-                        supplier=supplier["name"],
-                        delay_days=delay_days,
-                        lead_time=sample_row["planned_lead_time_days"],
-                        lead_time_new=sample_row["planned_lead_time_days"] + delay_days,
-                        region=supplier["region"],
-                        product=sample_row["product_name"],
-                        reject_pct=int(rng.integers(5, 25)),
-                        capacity_pct=int(rng.integers(40, 80)),
-                        order_id=sample_row["order_id"],
-                        qty=sample_row["qty_ordered"],
-                    )
-                else:
-                    template = random.choice(NOTE_TEMPLATES_NORMAL)
-                    note_text = template.format(
-                        supplier=supplier["name"],
-                        lead_time=sample_row["planned_lead_time_days"],
-                        product=sample_row["product_name"],
-                        order_id=sample_row["order_id"],
-                        qty=sample_row["qty_ordered"],
-                    )
-
-                note_date = pd.Timestamp(ym + "-01") + timedelta(days=int(rng.integers(0, 28)))
-                notes.append({
-                    "note_id": f"NOTE-{note_id:05d}",
-                    "supplier_id": sid,
-                    "supplier_name": supplier["name"],
-                    "note_date": note_date.strftime("%Y-%m-%d"),
-                    "note_text": note_text,
-                    "author": random.choice(["procurement_team", "account_manager", "quality_inspector", "logistics_coord"]),
-                    "has_risk_signal": has_risk,
-                })
-                note_id += 1
-
-    df = pd.DataFrame(notes)
-    df["note_date"] = pd.to_datetime(df["note_date"])
+    df = pd.DataFrame(results)
+    df["extraction_timestamp"] = datetime.now().isoformat()
+    df["model_version"] = "ground_truth"
+    df["source"] = "ground_truth"
     return df
