@@ -19,10 +19,10 @@ SKUS = [
 ]
 
 SUPPLIERS = [
-    {"supplier_id": "SUP01", "name": "Apex Components", "reliability": 0.55},
-    {"supplier_id": "SUP02", "name": "Nordic Metals",   "reliability": 0.45},
-    {"supplier_id": "SUP03", "name": "Delta Plastics",  "reliability": 0.65},
-    {"supplier_id": "SUP04", "name": "Precision Parts",  "reliability": 0.50},
+    {"supplier_id": "SUP01", "name": "Apex Components", "reliability": 0.45},
+    {"supplier_id": "SUP02", "name": "Nordic Metals",   "reliability": 0.35},
+    {"supplier_id": "SUP03", "name": "Delta Plastics",  "reliability": 0.55},
+    {"supplier_id": "SUP04", "name": "Precision Parts",  "reliability": 0.40},
 ]
 
 DELAY_REASONS = [
@@ -188,7 +188,7 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
                     and open_po["note_date"] is not None
                     and date >= open_po["note_date"]):
                 days_into_delay = (date - open_po["note_date"]).days
-                decay = max(0.25, 1.0 - days_into_delay * 0.06)
+                decay = max(0.15, 1.0 - days_into_delay * 0.10)
                 true_demand = max(1, int(true_demand * decay))
             sales = min(true_demand, max(0, int(inventory)))
             stockout = int(inventory <= 0)
