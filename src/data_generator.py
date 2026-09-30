@@ -170,7 +170,7 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
         reorder_point = sku["base_demand"] * (sku["base_lead_time"] + 2)
         order_qty = sku["base_demand"] * (sku["base_lead_time"] + 5)
 
-        inventory = int(order_qty * 0.6)
+        inventory = int(order_qty * 0.8)
         open_po = None
 
         for date in dates:
@@ -188,7 +188,7 @@ def generate_all_data(n_days=540, start_date="2024-01-01", seed=42):
                     and open_po["note_date"] is not None
                     and date >= open_po["note_date"]):
                 days_into_delay = (date - open_po["note_date"]).days
-                decay = max(0.15, 1.0 - days_into_delay * 0.10)
+                decay = max(0.40, 1.0 - days_into_delay * 0.07)
                 true_demand = max(1, int(true_demand * decay))
             sales = min(true_demand, max(0, int(inventory)))
             stockout = int(inventory <= 0)
