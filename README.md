@@ -24,7 +24,7 @@ Then open `notebooks/main.ipynb` and click **Run All**. The first cell installs 
 
 ## Configuration
 
-Set `USE_LLM = True` in Section 2 of the notebook to use live LLM extraction via OpenRouter. Set to `False` (default) to use ground-truth fallback without an API key.
+LLM extraction is enabled by default (`USE_LLM = True`). Set to `False` in Section 2 of the notebook to use ground-truth fallback without an API key.
 
 ## Project Structure
 
