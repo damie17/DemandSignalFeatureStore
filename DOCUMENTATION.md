@@ -120,8 +120,8 @@ Note: `delay_reason` is extracted and stored in the feature store for lineage/tr
 ## 5. Feature Store
 
 ### Storage
-- **Format:** Apache Parquet (columnar, compressed, type-preserving)
-- **Location:** `data/feature_store.parquet`
+- **Format:** CSV (universal, human-readable)
+- **Location:** `data/feature_store.csv`
 - **Lineage:** `data/feature_lineage.csv`
 
 ### Lineage Metadata (per feature)
@@ -198,7 +198,7 @@ The `early_delay_flag` is among the top features in the enhanced model, validati
 | Notebook | Jupyter (VS Code) |
 | ML Model | XGBoost |
 | LLM | GPT-4o via OpenRouter |
-| Feature Store | Apache Parquet |
+| Feature Store | CSV |
 | Drift Detection | PSI/CSI (scipy) |
 | Data Processing | pandas, numpy |
 | Visualization | matplotlib, seaborn |

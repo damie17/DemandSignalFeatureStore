@@ -489,7 +489,7 @@ add_rich_para([
 add_rich_para([
     ("Stage 3 — Feature Store: ", True, False, EXL_ORANGE, 11),
     ("ERP features (15) and note-derived features (2 used in model, 1 tracked) are merged into a "
-     "unified feature store. The store is saved as Apache Parquet with a companion CSV file tracking "
+     "unified feature store. The store is saved as CSV with a companion CSV file tracking "
      "lineage metadata (source, timestamps, freshness status) for every feature.", False, False, None, 11),
 ])
 
@@ -784,16 +784,15 @@ doc.add_paragraph(
 doc.add_heading("7.1 Storage Format", level=2)
 
 doc.add_paragraph(
-    "The feature store uses Apache Parquet as its storage format:"
+    "The feature store uses CSV as its storage format:"
 )
 
-add_bullet("Columnar format — reads only the columns needed, not entire rows")
-add_bullet("Compressed — significantly smaller than CSV for numeric data")
-add_bullet("Type-preserving — integers stay integers, dates stay dates (unlike CSV where everything is text)")
-add_bullet("Widely supported — pandas, Spark, Polars, and cloud services all read Parquet natively")
+add_bullet("Universal format — readable by any tool, language, or spreadsheet application")
+add_bullet("Human-readable — can be inspected directly without specialized software")
+add_bullet("Widely supported — pandas, Excel, cloud services, and databases all read CSV natively")
 
 doc.add_paragraph(
-    "The feature store is saved to data/feature_store.parquet. It contains one row per SKU per date "
+    "The feature store is saved to data/feature_store.csv. It contains one row per SKU per date "
     "with all 18 features and the target variable."
 )
 
@@ -1066,7 +1065,7 @@ add_table(
         ["Notebook", "Jupyter (VS Code)", "Single end-to-end executable notebook"],
         ["ML Framework", "XGBoost", "Gradient-boosted regression for demand forecasting"],
         ["LLM", "GPT-4o via OpenRouter", "Extracting structured signals from unstructured notes"],
-        ["Feature Store", "Apache Parquet", "Columnar storage for feature data with type preservation"],
+        ["Feature Store", "CSV", "Universal storage for feature data with lineage tracking"],
         ["Drift Detection", "PSI/CSI (scipy)", "Monitoring feature distribution stability"],
         ["Data Processing", "pandas, numpy", "Data manipulation, feature engineering, aggregation"],
         ["Visualization", "matplotlib, seaborn", "Charts for feature importance, drift, and comparisons"],

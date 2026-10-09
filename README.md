@@ -1,5 +1,42 @@
 # Demand Signal Feature Store
 
+LLM-extracted supplier delay signals improve demand forecasting by 6.6% (MAPE: 25.01% → 23.36%).
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Synthetic ERP  │     │  Supplier Notes  │     │    GPT-4o via   │
+│  Data Generator │     │   (58 texts)     │────▶│   OpenRouter    │
+│  (2,700 rows)   │     └─────────────────┘     │  (extraction)   │
+└────────┬────────┘                              └────────┬────────┘
+         │                                                │
+         │  15 ERP features                               │  3 note features
+         │  (sales lags, inventory,                       │  (early_delay_flag,
+         │   PO timing, calendar)                         │   expected_delay_days,
+         │                                                │   delay_reason)
+         ▼                                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Feature Store (CSV)                           │
+│  18 features + target  │  Lineage metadata  │  24h freshness SLA│
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+          ┌─────────────────┐       ┌─────────────────┐
+          │    Baseline     │       │    Enhanced      │
+          │  XGBoost Model  │       │  XGBoost Model   │
+          │  (15 ERP only)  │       │  (15 ERP + 2     │
+          │  MAPE: 25.01%   │       │   note features) │
+          └─────────────────┘       │  MAPE: 23.36%    │
+                                    └─────────────────┘
+                                             │
+                                    ┌────────┴────────┐
+                                    │  PSI/CSI Drift  │
+                                    │   Monitoring    │
+                                    └─────────────────┘
+```
+
 ## Setup & Run
 
 ```bash

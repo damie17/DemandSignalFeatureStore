@@ -83,7 +83,7 @@ set_text(find_shape(sl, "Text 6"),
 set_text(find_shape(sl, "Text 9"),
          "GPT-4o\nExtraction", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 12"),
-         "Feature Store\n(Parquet)", font_size=9.5, bold=True, color=WHITE)
+         "Feature Store\n(CSV)", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 15"),
          "PSI Drift\nMonitoring", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 18"),
@@ -93,7 +93,7 @@ set_text(find_shape(sl, "Text 18"),
 set_multiline(find_shape(sl, "Text 21"), [
     ("Model/LLM: GPT-4o via OpenRouter (extraction), XGBoost (forecasting)", 10.5, False, DARK_BG),
     ("Framework: pandas, numpy, scipy, python-dotenv", 10.5, False, DARK_BG),
-    ("Data store: Apache Parquet feature store + CSV lineage metadata", 10.5, False, DARK_BG),
+    ("Data store: CSV feature store + CSV lineage metadata", 10.5, False, DARK_BG),
     ("Eval/monitoring: PSI/CSI drift detection, 24h freshness SLA", 10.5, False, DARK_BG),
     ("Deployment: Jupyter notebook (single Run All), Git/GitHub", 10.5, False, DARK_BG),
 ])
@@ -102,7 +102,7 @@ set_multiline(find_shape(sl, "Text 21"), [
 set_text(find_shape(sl, "Text 24"),
          "Synthetic ERP data (2,700 daily records, 92 POs, 5 SKUs, 4 suppliers) flows into a feature engineering pipeline that computes 15 structured features. "
          "In parallel, 58 supplier notes are sent to GPT-4o, which extracts early_delay_flag, expected_delay_days, and delay_reason into structured JSON. "
-         "Both feature sets merge in a Parquet feature store with lineage tracking and a 24h freshness SLA. "
+         "Both feature sets merge in a CSV feature store with lineage tracking and a 24h freshness SLA. "
          "Two identical XGBoost models are trained — Baseline (ERP only) vs Enhanced (ERP + notes) — on a chronological 80/20 split. "
          "The enhanced model reduces MAPE from 25.01% to 23.36% (-6.6%), with early_delay_flag ranking as the #1 most important feature. "
          "The key design decision: excluding delay_reason from the model despite extracting it — PSI of 1.06 confirmed it drifts too heavily for stable prediction.",

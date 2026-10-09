@@ -199,19 +199,19 @@ set_text(find_shape(sl, "Text 1"),
 # Pipeline boxes (replacing the 5-box flow)
 set_text(find_shape(sl, "Text 5"), "Supplier Notes\n(58 texts)", font_size=12, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 8"), "GPT-4o\nExtraction", font_size=12, bold=True, color=WHITE)
-set_text(find_shape(sl, "Text 11"), "Feature Store\n(Parquet)", font_size=12, bold=True, color=WHITE)
+set_text(find_shape(sl, "Text 11"), "Feature Store\n(CSV)", font_size=12, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 14"), "XGBoost\nRegression", font_size=12, bold=True, color=DARK_BG)
 set_text(find_shape(sl, "Text 17"), "Next-Day\nForecast", font_size=12, bold=True, color=WHITE)
 
 # Architecture guidance (Text 18)
 set_text(find_shape(sl, "Text 18"),
-         "Data flows left \u2192 right: 58 supplier notes are processed by GPT-4o into structured signals, merged with 15 ERP features in a Parquet feature store, then fed to XGBoost for next-day sales prediction.",
+         "Data flows left \u2192 right: 58 supplier notes are processed by GPT-4o into structured signals, merged with 15 ERP features in a CSV feature store, then fed to XGBoost for next-day sales prediction.",
          font_size=10.5, color=HINT)
 
 # "Key components & choices" (Text 21)
 set_multiline(find_shape(sl, "Text 21"), [
     ("\u2022  LLM Extraction \u2014 GPT-4o extracts early_delay_flag, expected_delay_days, delay_reason from each note", 12, False, DARK_BG),
-    ("\u2022  Feature Store \u2014 18 features in Parquet with lineage metadata and 24h freshness SLA", 12, False, DARK_BG),
+    ("\u2022  Feature Store \u2014 18 features in CSV with lineage metadata and 24h freshness SLA", 12, False, DARK_BG),
     ("\u2022  Drift Monitoring \u2014 PSI/CSI tracks feature stability; alerts on distribution shift", 12, False, DARK_BG),
     ("\u2022  Leakage Prevention \u2014 chronological split, lag shifting, temporal windowing of note signals", 12, False, DARK_BG),
 ])
@@ -220,7 +220,7 @@ set_multiline(find_shape(sl, "Text 21"), [
 set_multiline(find_shape(sl, "Text 24"), [
     ("\u2022  Generative AI \u2014 LLM-based structured extraction from unstructured text", 12, False, WHITE),
     ("\u2022  ML Engineering \u2014 XGBoost regression, feature engineering, chronological evaluation", 12, False, WHITE),
-    ("\u2022  Data Engineering \u2014 Feature store design with Parquet storage and lineage tracking", 12, False, WHITE),
+    ("\u2022  Data Engineering \u2014 Feature store design with CSV storage and lineage tracking", 12, False, WHITE),
     ("\u2022  MLOps \u2014 PSI drift detection, freshness SLA monitoring, production-readiness patterns", 12, False, WHITE),
 ])
 
@@ -246,7 +246,7 @@ set_text(find_shape(sl, "Text 6"),
 set_multiline(find_shape(sl, "Text 9"), [
     ("\u2022  Step 1: Generate synthetic data \u2014 show 2,700 daily records, 92 POs, 58 notes", 12, False, WHITE),
     ("\u2022  Step 2: Run LLM extraction \u2014 watch GPT-4o process notes, 48/58 flagged as delays", 12, False, WHITE),
-    ("\u2022  Step 3: Build feature store \u2014 18 features saved to Parquet with lineage metadata", 12, False, WHITE),
+    ("\u2022  Step 3: Build feature store \u2014 18 features saved to CSV with lineage metadata", 12, False, WHITE),
     ("\u2022  Step 4: Train models \u2014 Baseline MAPE 25.01% vs Enhanced MAPE 23.36%", 12, False, WHITE),
     ("\u2022  Step 5: Show feature importance \u2014 early_delay_flag is #1", 12, False, WHITE),
     ("\u2022  Step 6: Drift detection \u2014 PSI confirms key features are stable", 12, False, WHITE),
@@ -290,7 +290,7 @@ set_multiline(find_shape(sl, "Text 21"), [
     ("    PSI Drift Detection \u2014 early_delay_flag PSI = 0.07 (stable), delay_reason PSI = 1.06 (excluded)", 12, False, WHITE),
     ("    Freshness SLA \u2014 24-hour check on all feature timestamps before inference", 12, False, WHITE),
     ("    Lineage Tracking \u2014 Every extraction tagged with timestamp, model version, source", 12, False, WHITE),
-    ("    Feature Store \u2014 Parquet storage with CSV lineage metadata for full traceability", 12, False, WHITE),
+    ("    Feature Store \u2014 CSV storage with lineage metadata for full traceability", 12, False, WHITE),
 ])
 
 # ════════════════════════════════════════════════════════════════
