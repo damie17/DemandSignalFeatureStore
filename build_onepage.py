@@ -73,7 +73,7 @@ set_text(find_shape(sl, "Text 2"),
 
 # Text 3: Track / Domain / Team / Date
 set_text(find_shape(sl, "Text 3"),
-         "Track: 2   \u00b7   Domain: Supply Chain / Retail   \u00b7   Team: Damie   \u00b7   Date: 29 Sep 2026",
+         "Track: 1   \u00b7   Domain: Supply Chain / Retail   \u00b7   Team: Damini Thandele   \u00b7   Date: 10 Oct 2026",
          font_size=9.5, color=CREAM)
 
 # ── ARCHITECTURE section ──
@@ -83,9 +83,9 @@ set_text(find_shape(sl, "Text 6"),
 set_text(find_shape(sl, "Text 9"),
          "GPT-4o\nExtraction", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 12"),
-         "Feature Store\n(CSV)", font_size=9.5, bold=True, color=WHITE)
+         "Feature Store", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 15"),
-         "PSI Drift\nMonitoring", font_size=9.5, bold=True, color=WHITE)
+         "Freshness SLA\n+ PSI Drift", font_size=9.5, bold=True, color=WHITE)
 set_text(find_shape(sl, "Text 18"),
          "XGBoost\nForecast", font_size=9.5, bold=True, color=WHITE)
 
@@ -93,8 +93,8 @@ set_text(find_shape(sl, "Text 18"),
 set_multiline(find_shape(sl, "Text 21"), [
     ("Model/LLM: GPT-4o via OpenRouter (extraction), XGBoost (forecasting)", 10.5, False, DARK_BG),
     ("Framework: pandas, numpy, scipy, python-dotenv", 10.5, False, DARK_BG),
-    ("Data store: CSV feature store + CSV lineage metadata", 10.5, False, DARK_BG),
-    ("Eval/monitoring: PSI/CSI drift detection, 24h freshness SLA", 10.5, False, DARK_BG),
+    ("Data store: Feature store with lineage metadata", 10.5, False, DARK_BG),
+    ("Eval/monitoring: MAPE (25.01% → 23.36%), PSI/CSI drift detection, 24h freshness SLA", 10.5, False, DARK_BG),
     ("Deployment: Jupyter notebook (single Run All), Git/GitHub", 10.5, False, DARK_BG),
 ])
 
@@ -102,7 +102,7 @@ set_multiline(find_shape(sl, "Text 21"), [
 set_text(find_shape(sl, "Text 24"),
          "Synthetic ERP data (2,700 daily records, 92 POs, 5 SKUs, 4 suppliers) flows into a feature engineering pipeline that computes 15 structured features. "
          "In parallel, 58 supplier notes are sent to GPT-4o, which extracts early_delay_flag, expected_delay_days, and delay_reason into structured JSON. "
-         "Both feature sets merge in a CSV feature store with lineage tracking and a 24h freshness SLA. "
+         "Both feature sets merge in a feature store with lineage tracking and a 24h freshness SLA. "
          "Two identical XGBoost models are trained — Baseline (ERP only) vs Enhanced (ERP + notes) — on a chronological 80/20 split. "
          "The enhanced model reduces MAPE from 25.01% to 23.36% (-6.6%), with early_delay_flag ranking as the #1 most important feature. "
          "The key design decision: excluding delay_reason from the model despite extracting it — PSI of 1.06 confirmed it drifts too heavily for stable prediction.",
@@ -135,7 +135,7 @@ set_multiline(find_shape(sl, "Text 28"), [
     ("Does not do yet: Real-time extraction, automated retraining, multi-supplier overlap, cloud deployment", 10.5, False, DARK_BG),
     ("Data / scope: Synthetic data (540 days, 5 SKUs); real supplier notes may have more variability", 10.5, False, DARK_BG),
     ("Known failure modes: LLM API outage degrades to ERP-only features (graceful fallback); daily MAPE of ~23% is typical for SKU-level forecasting", 10.5, False, DARK_BG),
-    ("Next step: Hyperparameter tuning (Optuna) + Azure deployment (Blob Storage + Azure ML) for production-ready pipeline", 10.5, False, DARK_BG),
+    ("Next step: Hyperparameter tuning (Optuna), real-time streaming extraction, automated retraining on PSI drift alerts", 10.5, False, DARK_BG),
 ])
 
 # Footer
