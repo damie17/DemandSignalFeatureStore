@@ -18,7 +18,26 @@ Measure whether LLM-extracted supplier delay signals improve next-day demand for
 
 Both models use identical hyperparameters to isolate the value of the additional features.
 
-## Results
+## LLM Extraction Quality
+
+The LLM (GPT-4o) extracts structured fields from 58 supplier notes. Ground truth comes from the data generator's `note_type` label.
+
+| Metric | Score |
+|--------|-------|
+| **Precision** | 100% |
+| **Recall** | 100% |
+| **F1 Score** | 100% |
+| **Accuracy** | 100% |
+| **Delay Days MAE** | ~1.5 days |
+
+- **Precision:** Of the notes flagged as delays, all were actual delays
+- **Recall:** All actual delay notes were correctly identified
+- **F1 Score:** Harmonic mean of precision and recall
+- **Delay Days MAE:** Average error in predicted delay duration vs. actual
+
+Note: Scores are near-perfect on synthetic data. Real-world supplier notes with more variability would likely produce lower scores.
+
+## Forecast Results
 
 | Metric | Baseline (ERP only) | Enhanced (ERP + Notes) | Change |
 |--------|---------------------|------------------------|--------|

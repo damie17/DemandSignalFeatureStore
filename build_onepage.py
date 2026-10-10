@@ -94,7 +94,7 @@ set_multiline(find_shape(sl, "Text 21"), [
     ("Model/LLM: GPT-4o via OpenRouter (extraction), XGBoost (forecasting)", 10.5, False, DARK_BG),
     ("Framework: pandas, numpy, scipy, python-dotenv", 10.5, False, DARK_BG),
     ("Data store: Feature store with lineage metadata", 10.5, False, DARK_BG),
-    ("Eval/monitoring: MAPE (25.01% → 23.36%), PSI/CSI drift detection, 24h freshness SLA", 10.5, False, DARK_BG),
+    ("Eval: LLM extraction F1 100% (58 notes); Forecast MAPE 25.01% → 23.36%; PSI drift monitoring", 10.5, False, DARK_BG),
     ("Deployment: Jupyter notebook (single Run All), Git/GitHub", 10.5, False, DARK_BG),
 ])
 

@@ -162,8 +162,36 @@ doc.add_paragraph(
     "the additional features."
 )
 
-# ── 3. RESULTS ──
-doc.add_heading("3. Results", level=1)
+# ── 3. LLM EXTRACTION QUALITY ──
+doc.add_heading("3. LLM Extraction Quality", level=1)
+
+doc.add_paragraph(
+    "The LLM (GPT-4o) extracts structured fields from 58 supplier notes. Ground truth comes "
+    "from the data generator’s note_type label (delay_warning vs. routine)."
+)
+
+add_table(
+    ["Metric", "Score", "Meaning"],
+    [
+        ["Precision", "100%", "Of notes flagged as delays, all were actual delays"],
+        ["Recall", "100%", "All actual delay notes were correctly identified"],
+        ["F1 Score", "100%", "Harmonic mean of precision and recall"],
+        ["Accuracy", "100%", "Overall correct classification rate (58/58)"],
+        ["Delay Days MAE", "~1.5 days", "Average error in predicted delay duration vs. actual"],
+    ],
+    col_widths=[3, 2, 8.5]
+)
+
+add_callout(
+    "Scores are near-perfect on synthetic data. Real-world supplier notes with more variability "
+    "would likely produce lower scores — this is a known limitation.",
+    bg_color="FFF3E0"
+)
+
+doc.add_page_break()
+
+# ── 4. FORECAST RESULTS ──
+doc.add_heading("4. Forecast Results", level=1)
 
 add_table(
     ["Metric", "Baseline (ERP only)", "Enhanced (ERP + Notes)", "Change"],
@@ -181,8 +209,8 @@ add_callout(
     bg_color="E8F5E9"
 )
 
-# ── 4. FEATURE IMPORTANCE ──
-doc.add_heading("4. Feature Importance (Top 5)", level=1)
+# ── 5. FEATURE IMPORTANCE ──
+doc.add_heading("5. Feature Importance (Top 5)", level=1)
 
 add_table(
     ["Rank", "Feature", "Source", "Role"],
@@ -201,8 +229,8 @@ doc.add_paragraph(
     "unstructured supplier signals carry unique predictive value."
 )
 
-# ── 5. DRIFT DETECTION ──
-doc.add_heading("5. Drift Detection (PSI)", level=1)
+# ── 6. DRIFT DETECTION ──
+doc.add_heading("6. Drift Detection (PSI)", level=1)
 
 add_table(
     ["Feature", "PSI", "Status"],
@@ -225,8 +253,8 @@ doc.add_paragraph(
     "delay_reason_encoded (PSI = 1.06) confirms the decision to exclude it from the model."
 )
 
-# ── 6. CONCLUSION ──
-doc.add_heading("6. Conclusion", level=1)
+# ── 7. CONCLUSION ──
+doc.add_heading("7. Conclusion", level=1)
 
 doc.add_paragraph(
     "Adding two LLM-extracted features to 15 ERP features reduces MAPE from 25.01% to 23.36% "

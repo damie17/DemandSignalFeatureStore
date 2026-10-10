@@ -277,10 +277,10 @@ set_text(find_shape(sl, "Text 15"), "6.80 \u2192 6.35 units", font_size=12, colo
 
 # Evaluation method (Text 18)
 set_multiline(find_shape(sl, "Text 18"), [
+    ("    LLM Extraction \u2014 Precision 100%, Recall 100%, F1 100% on 58 notes", 12, False, DARK_BG),
     ("    Chronological Split \u2014 80% train / 20% test by date (no random shuffle)", 12, False, DARK_BG),
     ("    Same Hyperparameters \u2014 Both models use identical XGBoost config for fair comparison", 12, False, DARK_BG),
     ("    Feature Importance \u2014 early_delay_flag is the #1 feature in the enhanced model", 12, False, DARK_BG),
-    ("    Synthetic Data \u2014 540 days, 5 SKUs, 4 suppliers with 35\u201355% reliability", 12, False, DARK_BG),
 ])
 
 # Safety & guardrails → Monitoring & drift (Text 21)
